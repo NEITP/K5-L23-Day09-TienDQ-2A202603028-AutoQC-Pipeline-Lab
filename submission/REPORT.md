@@ -50,12 +50,19 @@ Calibration có thể đánh lừa vì chỉ có 39 ảnh và lỗi được ch�
 
 ## 5. Train raw vs clean
 
-Chưa chạy train Colab. Phần so sánh raw/clean chưa có số liệu; cần chạy notebook theo docs/COLAB.md sau khi đẩy repo và export lên GitHub.
+Đã train trên Colab T4 với yolo26n, 20 epoch, seed 0 và 1; cùng tập val 40 ảnh và test 100 ảnh. Raw dùng 224 ảnh; clean dùng 202 ảnh theo manifest hiện tại (hash manifest khớp kết quả train).
+
+| Biến thể | Ảnh train | Seed | mAP50 TB ± độ lệch | mAP50-95 TB ± độ lệch | Precision | Recall |
+|---|---:|---:|---:|---:|---:|---:|
+| raw | 224 | 0, 1 | 0.726 ± 0.000 | 0.512 ± 0.004 | 0.764 ± 0.061 | 0.649 ± 0.028 |
+| clean | 202 | 0, 1 | 0.701 ± 0.025 | 0.487 ± 0.008 | 0.759 ± 0.003 | 0.625 ± 0.019 |
+
+Chênh mAP50 clean − raw là −0.025; độ lệch giữa hai seed của clean (0.025) cho thấy kết quả clean dao động đáng kể. Hai seed chưa đủ để kết luận chắc chắn nguyên nhân hay mức độ khái quát. Cần thêm seed và xem AP theo lớp; kiểm nhãn clean thêm cũng cần thiết vì gate hiện tại là Hold.
 
 ## 6. Quyết định và ghi chú AI
 
 Quyết định hiện tại là **Hold**. Để tiến tới Release, cần người duyệt/khắc phục cảnh báo còn lại, chạy lại pipeline và chỉ phát hành nếu gate không còn lỗi bắt buộc và tỷ lệ cảnh báo dưới ngưỡng.
 
 - Prompt chính: yêu cầu triển khai bốn module theo docstring và test của lab, tuân thủ ngưỡng cấu hình và không sửa dữ liệu gốc.
-- Cách kiểm: chạy pytest toàn bộ (79 passed), calibration, pipeline chính và pipeline `--budget 0`; kiểm tra summary, danh sách lỗi và log fix.
+- Cách kiểm: chạy pytest toàn bộ (79 passed), calibration, pipeline chính và pipeline `--budget 0`; kiểm tra summary, danh sách lỗi/log fix và kiểm chứng raw/clean bằng hai seed trên Colab.
 - Lỗi AI phát hiện và sửa: lỗi cú pháp dấu nháy trong phần ghi `data.yaml` của autofix; pytest bắt lỗi khi import, sau đó đã sửa và toàn bộ test qua.
