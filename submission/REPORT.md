@@ -63,6 +63,6 @@ Chênh mAP50 clean − raw là −0.025; độ lệch giữa hai seed của clea
 
 Quyết định hiện tại là **Hold**. Để tiến tới Release, cần người duyệt/khắc phục cảnh báo còn lại, chạy lại pipeline và chỉ phát hành nếu gate không còn lỗi bắt buộc và tỷ lệ cảnh báo dưới ngưỡng.
 
-- Prompt → AI trả gì: yêu cầu viết bốn module theo docstring và test; AI triển khai các check, gate và autofix theo cấu hình của bài.
+- Prompt → AI trả gì: prompt nêu chữ ký, quy tắc, ngưỡng cfg, giới hạn an toàn và test mục tiêu riêng cho label_format, gate, autofix, second_opinion; AI triển khai bốn module theo yêu cầu.
 - Rà code: `autofix` có chủ ý xóa ảnh/nhãn lỗi và ghi lại nhãn cùng `data.yaml` trong dataset làm việc; không có `except: pass`, các ngưỡng kiểm tra lấy từ `cfg`, không sửa `data/raw`.
 - Kiểm chứng và lỗi AI: chạy 79 test trong worktree bản sao, calibration trên bộ lỗi chèn sẵn, và pipeline `--budget 0` trong bản sao (Rework, còn 6 lỗi, không export); một lỗi cú pháp dấu nháy ở `autofix` từng làm test import lỗi, đã sửa và chạy lại xanh. Kết quả train raw/clean được đối chiếu hash manifest/config.
