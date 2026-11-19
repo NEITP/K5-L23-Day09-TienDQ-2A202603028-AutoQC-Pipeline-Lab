@@ -31,7 +31,7 @@ Số lượng dưới đây là số issue trong báo cáo vòng 1; các nhóm l
 | CORRUPT_IMAGE | 2 | Máy loại ảnh | Ảnh không mở được |
 | BAD_CLASS_NAME | 2 | Máy sửa names | Chuẩn hóa tên lớp |
 
-Autofix ghi 35 thay đổi: 20 drop_line, 8 clip_box, 6 needs_label và 1 rename_classes. Hàng đợi có 121 ảnh, xếp theo điểm ưu tiên cộng dồn từ loại cảnh báo và mức độ nặng; ngân sách 80 ảnh nên còn ảnh chưa được người duyệt.
+Autofix ghi 35 thay đổi: 20 drop_line, 8 clip_box, 6 needs_label và 1 rename_classes. Hàng đợi có 125 ảnh, xếp theo điểm ưu tiên cộng dồn từ loại cảnh báo và mức độ nặng; ngân sách 80 ảnh nên còn ảnh chưa được người duyệt.
 
 ## 3. Calibration
 
