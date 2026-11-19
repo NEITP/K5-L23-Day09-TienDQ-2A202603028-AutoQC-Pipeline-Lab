@@ -1,36 +1,61 @@
-# Báo cáo Day 09 — <Họ và tên>, <MSHV>
-
-> Xoá mọi `TODO(học viên)` và dòng gợi ý. Mỗi ý trả lời bằng **số lấy từ `submission/reports/`**, kèm mẫu số. Cả báo cáo ~1–2 trang.
+# Báo cáo Day 09 — Đinh Quốc Tiến, 2A202603028
 
 ## 1. Kết luận trước
-TODO(học viên): pipeline kết luận **Release / Hold / Rework**? Bao nhiêu ảnh vào, bao nhiêu ảnh ra dataset? Lý do chính (1–3 câu).
+
+Pipeline nhận 193/224 ảnh, loại 31 ảnh ở intake. Sau autofix và mô phỏng duyệt 80 ảnh, kết luận là **Hold**: không còn lỗi bắt buộc, nhưng 34/193 ảnh còn cảnh báo (17,62%), cao hơn ngưỡng 10%. Dataset được xuất ở trạng thái bản nháp Hold, chưa phải bản phát hành.
 
 ## 2. Lỗi và phân việc
-Lấy từ `02_error_list_v1` (gom theo mã lỗi). Cột "ai sửa": **máy** (autofix) hay **người** (hàng đợi); chỉ ghi những mã có mặt trong lô của bạn.
 
-| Mã lỗi | Số ảnh/dòng | Ai sửa (máy/người) | Vì sao |
+Số lượng dưới đây là số issue trong báo cáo vòng 1; các nhóm lỗi có thể cùng xuất hiện trên một ảnh.
+
+| Mã lỗi | Số issue | Xử lý | Ghi chú |
 |---|---:|---|---|
-| TODO(học viên) | | | |
+| POSSIBLE_MISSING | 53 | Người | Cảnh báo model thấy vật thể chưa có box |
+| POSSIBLE_FALSE_POS | 28 | Người | Cảnh báo box nhãn không khớp dự đoán |
+| POSSIBLE_LOOSE_BOX | 27 | Người | Cảnh báo box có thể lỏng/lệch |
+| POSSIBLE_WRONG_CLASS | 17 | Người | Cảnh báo khác lớp cần xem ảnh |
+| LEAK_TEST | 11 | Máy loại ảnh | Ảnh gần trùng với tập tham chiếu |
+| EMPTY_LABEL | 11 | Người | Cần phân biệt ảnh nền với thiếu nhãn |
+| DUP_IMAGE_EXACT | 8 | Máy loại ảnh | Trùng byte |
+| BOX_OUT_OF_IMAGE | 8 | Máy cắt | Cắt box vào biên ảnh |
+| DUP_IMAGE_NEAR | 7 | Máy loại ảnh | Trùng gần đúng |
+| DUP_BOX | 7 | Máy xóa dòng | Dòng box lặp |
+| MISSING_LABEL_FILE | 6 | Người | Máy không tự tạo nhãn |
+| BAD_CLASS_ID | 6 | Máy xóa dòng | ID ngoài danh sách lớp |
+| BOX_TINY | 6 | Người | Cảnh báo box nhỏ |
+| BOX_ZERO | 4 | Máy xóa dòng | Box có chiều rộng/cao bằng 0 |
+| CLASS_RARE | 4 | Người | Cảnh báo lớp hiếm |
+| BAD_SIZE | 3 | Máy loại ảnh | Ảnh nhỏ hơn yêu cầu |
+| BAD_FORMAT | 3 | Máy xóa dòng | Dòng nhãn sai định dạng |
+| BOX_HUGE | 3 | Người | Box chiếm diện tích lớn |
+| CORRUPT_IMAGE | 2 | Máy loại ảnh | Ảnh không mở được |
+| BAD_CLASS_NAME | 2 | Máy sửa names | Chuẩn hóa tên lớp |
 
-TODO(học viên): vì sao `05_review_queue.csv` xếp ảnh đầu hàng như vậy? Với ngân sách 80 ảnh, người xem được bao nhiêu lỗi ngữ nghĩa?
+Autofix ghi 35 thay đổi: 20 drop_line, 8 clip_box, 6 needs_label và 1 rename_classes. Hàng đợi có 121 ảnh, xếp theo điểm ưu tiên cộng dồn từ loại cảnh báo và mức độ nặng; ngân sách 80 ảnh nên còn ảnh chưa được người duyệt.
 
-## 3. Calibration (2 ngưỡng)
-| Tham số | Khởi đầu | Đã chọn | Precision / Recall (trước → sau) | Lý do (đánh đổi) |
-|---|---|---|---|---|
-| `duplicates.phash_dist` | 2 | TODO(học viên) | | |
-| `second_opinion.conf` | 0.25 | TODO(học viên) | | |
+## 3. Calibration
 
-TODO(học viên): **một chỗ calibration có thể đánh lừa bạn**, kèm bằng chứng từ dữ liệu của bạn (vd. mở xem vài cặp ảnh bị cho là trùng; số ảnh bị loại ở bước 1 có hợp lý không?).
+| Tham số | Giá trị đầu | Đã chọn | Precision / Recall | Lý do |
+|---|---:|---:|---|---|
+| duplicates.phash_dist | 2 | 16 | near duplicate: 1.00 / 0.50 → 1.00 / 0.83 | Giữ precision 1.00 và tăng recall; ở 20 precision exact duplicate giảm còn 0.33. |
+| second_opinion.conf | 0.25 | 0.6 | wrong class: 0.56 / 0.83 → 0.62 / 0.83; missing: 0.50 / 1.00 → 0.57 / 1.00 | Tăng precision mà vẫn giữ recall missing/wrong-class ở mức sweep này. Loose-box giảm recall; cần người xem xét. |
 
-## 4. Cửa chặn và điều pipeline KHÔNG bắt được
-TODO(học viên): (a) chứng minh gate chặn đúng: chạy `python -m pipeline.run --budget 0 --reports work/rep_nb --export-dir work/exp_nb` (không có người duyệt nên ảnh thiếu file nhãn còn nguyên), chỉ ra kết luận **Rework**, mã thoát 20 và việc **không xuất** dataset. (Đừng sửa tay `work/run/ds`: pipeline dựng lại thư mục này từ raw mỗi lần chạy.) (b) ≥ 2 điểm mù có bằng chứng (box lỏng nhẹ, nhầm lớp mà model lớn cũng nhầm, ảnh trùng biến đổi mạnh…).
+Calibration có thể đánh lừa vì chỉ có 39 ảnh và lỗi được chèn có chủ đích. Kết quả trên tập này không bảo đảm phản ánh đầy đủ lỗi tự nhiên trong raw; vì vậy phash_dist 16 cần được kiểm tra trực quan trên các cặp ảnh bị coi là trùng.
 
-## 5. Train: raw vs clean (tùy chọn, chấm riêng)
-Chưa train: ghi "chưa chạy" và lý do, rồi bỏ qua phần còn lại của mục này. Nếu đã train: dán bảng từ `submission/results/comparison.md` (model, epoch, seed, số ảnh train mỗi biến thể).
+## 4. Cửa chặn và điểm mù
 
-TODO(học viên): chênh mAP50 (clean − raw) so với **độ lệch chuẩn giữa các seed**; kết luận **trung thực** (nằm trong nhiễu thì nói là chưa kết luận được); ≥ 2 giả thuyết giải thích (ảnh trùng/rò rỉ test trong `raw`, nhãn máy còn lại trong `clean`, test chỉ 100 ảnh…) và cách kiểm.
+Ở lần chạy chính, gate báo Hold vì 34/193 ảnh còn cảnh báo (17,62%), vượt ngưỡng 10%. Hàng đợi 121 ảnh vượt ngân sách 80, nên cảnh báo còn lại là lý do cần review thêm.
+
+Ở lần chạy `--budget 0`, gate báo **Rework**, còn 6 lỗi bắt buộc và không xuất dataset; đây là bằng chứng lỗi bắt buộc chặn xuất. Hai điểm mù đã biết: (1) checker second-opinion phụ thuộc dự đoán model, mà prediction cũng có thể sai; calibration cho wrong-class tại conf 0.6 có precision 0.62, tức còn false positive. (2) bộ calibration nhỏ (39 ảnh) và không bao phủ mọi biến thể trùng ảnh/lỗi tự nhiên, nên recall trên calib không đại diện chắc chắn cho raw.
+
+## 5. Train raw vs clean
+
+Chưa chạy train Colab. Phần so sánh raw/clean chưa có số liệu; cần chạy notebook theo docs/COLAB.md sau khi đẩy repo và export lên GitHub.
 
 ## 6. Quyết định và ghi chú AI
-TODO(học viên): (a) quyết định cuối; nếu Hold/Rework cần làm gì để thành Release? (b) Dùng AI viết code? Ghi 3 dòng: prompt chính, cách bạn kiểm code AI, 1 lần AI sai. Không dùng: ghi "không dùng".
 
-*(Thưởng +2, tùy chọn)* CVAT: lọc `width < 20`, ảnh/số box khớp, đối chiếu `BOX_TINY` (xem docs/CVAT_FILTER.md), 1 câu về `can_review`.
+Quyết định hiện tại là **Hold**. Để tiến tới Release, cần người duyệt/khắc phục cảnh báo còn lại, chạy lại pipeline và chỉ phát hành nếu gate không còn lỗi bắt buộc và tỷ lệ cảnh báo dưới ngưỡng.
+
+- Prompt chính: yêu cầu triển khai bốn module theo docstring và test của lab, tuân thủ ngưỡng cấu hình và không sửa dữ liệu gốc.
+- Cách kiểm: chạy pytest toàn bộ (79 passed), calibration, pipeline chính và pipeline `--budget 0`; kiểm tra summary, danh sách lỗi và log fix.
+- Lỗi AI phát hiện và sửa: lỗi cú pháp dấu nháy trong phần ghi `data.yaml` của autofix; pytest bắt lỗi khi import, sau đó đã sửa và toàn bộ test qua.

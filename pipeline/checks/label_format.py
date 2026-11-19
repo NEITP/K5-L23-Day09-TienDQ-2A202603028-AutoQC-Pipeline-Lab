@@ -25,5 +25,25 @@ from ..common import ERROR, WARN, Issue, iou_xywh, parse_yolo_line  # noqa: F401
 
 
 def run(ds, cfg):
-    # TODO: duyệt từng file nhãn, từng dòng
-    raise NotImplementedError("check label_format chưa làm")
+    out = []
+    t = cfg["label_format"]
+    for p in ds.image_files():
+        stem, prior = p.stem, []
+        size = ds.image_size(stem)
+        for line, raw in ds.read_label_lines(stem) or []:
+            try:
+                c, x, y, w, h = parse_yolo_line(raw)
+            except ValueError as e:
+                out.append(Issue("label_format", ERROR, "BAD_FORMAT", stem, str(e), line)); continue
+            if not 0 <= c < len(ds.classes):
+                out.append(Issue("label_format", ERROR, "BAD_CLASS_ID", stem, f"class id {c} không hợp lệ", line)); continue
+            if w <= 0 or h <= 0:
+                out.append(Issue("label_format", ERROR, "BOX_ZERO", stem, "width/height phải dương", line)); continue
+            overflow = max(0, -(x-w/2), -(y-h/2), x+w/2-1, y+h/2-1)
+            if overflow > t["overflow_tol"]: out.append(Issue("label_format", ERROR, "BOX_OUT_OF_IMAGE", stem, "box tràn ảnh", line, {"overflow": overflow}))
+            box = (x, y, w, h)
+            if any(pc == c and iou_xywh(box, pb) > t["dup_box_iou"] for pc, pb in prior): out.append(Issue("label_format", ERROR, "DUP_BOX", stem, "box trùng cùng lớp", line))
+            prior.append((c, box))
+            if size and min(w*size[0], h*size[1]) < t["min_box_px"]: out.append(Issue("label_format", WARN, "BOX_TINY", stem, "box nhỏ", line))
+            if w*h > t["max_box_frac"]: out.append(Issue("label_format", WARN, "BOX_HUGE", stem, "box quá lớn", line))
+    return out

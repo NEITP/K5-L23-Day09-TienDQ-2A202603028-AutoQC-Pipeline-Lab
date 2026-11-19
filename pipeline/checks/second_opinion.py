@@ -40,5 +40,23 @@ from ..model_cache import get_preds  # noqa: F401
 
 
 def run(ds, cfg, preds=None):
-    # TODO
-    raise NotImplementedError("check second_opinion chưa làm")
+    if preds is None: preds = get_preds(ds, cfg, "checker")
+    t = cfg["second_opinion"]; out = []
+    for path in ds.image_files():
+        stem = path.stem; raw = ds.read_label_lines(stem)
+        if stem not in preds or raw is None: continue
+        size = ds.image_size(stem)
+        if size is None: continue
+        W,H = size; labels = ds.valid_boxes(stem)
+        selected = [r for r in preds[stem] if r[1] >= t["conf"] and r[4]*W*r[5]*H >= t["min_area_px"]]
+        for r in selected:
+            cls,conf,cx,cy,w,h = r; rb=(cx,cy,w,h); overlaps=[(b[0], iou_xywh(rb,b[1:])) for b in labels]; cands=[x for x in overlaps if x[1] >= t["iou_missing"]]
+            same=[x[1] for x in cands if x[0] == cls]; other=[x[1] for x in cands if x[0] != cls]; code = "POSSIBLE_MISSING" if not cands else "POSSIBLE_LOOSE_BOX" if same and max(same) < t["iou_loose"] else "POSSIBLE_WRONG_CLASS" if not same and other and max(other) >= t["iou_match"] else None
+            if code: out.append(Issue("second_opinion", WARN, code, stem, "model và nhãn có thể không khớp", extra={"conf": conf}))
+        fp_preds=[r for r in preds[stem] if r[1] >= t["fp_conf"]]
+        for no,line in raw:
+            try: c,x,y,w,h=parse_yolo_line(line)
+            except ValueError: continue
+            if not 0 <= c < len(ds.classes): continue
+            if all(iou_xywh((x,y,w,h),(r[2],r[3],r[4],r[5])) < t["iou_missing"] for r in fp_preds): out.append(Issue("second_opinion", WARN, "POSSIBLE_FALSE_POS", stem, "nhãn không khớp dự đoán", no, {"iou": max((iou_xywh((x,y,w,h),(r[2],r[3],r[4],r[5])) for r in fp_preds), default=0)}))
+    return out

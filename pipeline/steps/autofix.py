@@ -27,7 +27,9 @@ Bẫy cần nghĩ tới (có test cho từng cái)
 
 Gợi ý: `yaml.safe_load / safe_dump`.
 """
-from collections import defaultdict  # noqa: F401
+from collections import defaultdict
+from pathlib import Path
+import shutil
 
 import yaml  # noqa: F401
 
@@ -35,5 +37,32 @@ from ..common import ERROR, parse_yolo_line  # noqa: F401
 
 
 def fix(ds, issues, cfg):
-    # TODO
-    raise NotImplementedError("autofix chưa làm")
+    fixes = []; remove_codes = {i.image for i in issues if i.severity == ERROR and (i.code.startswith("DUP_IMAGE_") or i.code in {"LEAK_TEST", "CORRUPT_IMAGE", "BAD_SIZE"})}
+    for stem in sorted(remove_codes):
+        p = ds.image_path(stem)
+        if p: p.unlink()
+        lp = ds.label_path(stem)
+        if lp.exists(): lp.unlink()
+        fixes.append(dict(image=stem, line="", action="remove_image", before="present", after="removed"))
+    grouped = defaultdict(lambda: defaultdict(set))
+    for i in issues:
+        if i.severity != ERROR or i.image in remove_codes: continue
+        if i.code == "MISSING_LABEL_FILE": fixes.append(dict(image=i.image, line="", action="needs_label", before="(không có file)", after="chuyển người gán"))
+        elif i.code == "BAD_CLASS_NAME": grouped["data.yaml"]["rename"].add(None)
+        elif i.line: grouped[i.image][i.code].add(i.line)
+    for stem, actions in grouped.items():
+        if stem == "data.yaml":
+            d = yaml.safe_load(ds.yaml_path.read_text(encoding="utf-8")) or {}; before = str(d.get("names")); d["names"] = dict(enumerate(cfg["classes"]))
+            ds.yaml_path.write_text(yaml.safe_dump(d, sort_keys=False, allow_unicode=True), encoding="utf-8"); fixes.append(dict(image="data.yaml", line="", action="rename_classes", before=before, after=str(d["names"]))); continue
+        path = ds.label_path(stem)
+        if not path.exists(): continue
+        lines = path.read_text(encoding="utf-8").splitlines(); drop = set().union(*(actions[c] for c in ("BAD_FORMAT", "BAD_CLASS_ID", "BOX_ZERO", "DUP_BOX") if c in actions)); clip = actions.get("BOX_OUT_OF_IMAGE", set()) - drop; kept = []
+        for no, raw in enumerate(lines, 1):
+            if no in drop: fixes.append(dict(image=stem, line=no, action="drop_line", before=raw, after="")); continue
+            if no in clip:
+                c,x,y,w,h = parse_yolo_line(raw); x1=max(0,x-w/2); y1=max(0,y-h/2); x2=min(1,x+w/2); y2=min(1,y+h/2)
+                if x2 <= x1 or y2 <= y1: fixes.append(dict(image=stem,line=no,action="drop_line",before=raw,after="")); continue
+                new=f"{c} {(x1+x2)/2:.8g} {(y1+y2)/2:.8g} {x2-x1:.8g} {y2-y1:.8g}"; fixes.append(dict(image=stem,line=no,action="clip_box",before=raw,after=new)); kept.append(new)
+            else: kept.append(raw)
+        if len(kept) != len(lines) or clip: path.write_text("\n".join(kept)+("\n" if kept else ""), encoding="utf-8")
+    return fixes
