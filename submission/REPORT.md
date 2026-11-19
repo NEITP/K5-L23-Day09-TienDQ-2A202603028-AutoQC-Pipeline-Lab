@@ -2,7 +2,7 @@
 
 ## 1. Kết luận trước
 
-Pipeline nhận 193/224 ảnh, loại 31 ảnh ở intake. Sau autofix và mô phỏng duyệt 80 ảnh, kết luận là **Hold**: không còn lỗi bắt buộc, nhưng 34/193 ảnh còn cảnh báo (17,62%), cao hơn ngưỡng 10%. Dataset được xuất ở trạng thái bản nháp Hold, chưa phải bản phát hành.
+Pipeline nhận 202/224 ảnh, loại 22 ảnh ở intake (8 trùng byte, 5 rò rỉ test, 4 trùng gần, 3 ảnh nhỏ và 2 ảnh hỏng). Sau autofix và mô phỏng duyệt 80 ảnh, kết luận là **Hold**: không còn lỗi bắt buộc, nhưng 38/202 ảnh còn cảnh báo (18,81%), cao hơn ngưỡng 10%. Dataset 202 ảnh được xuất ở trạng thái bản nháp Hold, chưa phải bản phát hành.
 
 ## 2. Lỗi và phân việc
 
@@ -11,14 +11,14 @@ Số lượng dưới đây là số issue trong báo cáo vòng 1; các nhóm l
 | Mã lỗi | Số issue | Xử lý | Ghi chú |
 |---|---:|---|---|
 | POSSIBLE_MISSING | 53 | Người | Cảnh báo model thấy vật thể chưa có box |
-| POSSIBLE_FALSE_POS | 28 | Người | Cảnh báo box nhãn không khớp dự đoán |
-| POSSIBLE_LOOSE_BOX | 27 | Người | Cảnh báo box có thể lỏng/lệch |
-| POSSIBLE_WRONG_CLASS | 17 | Người | Cảnh báo khác lớp cần xem ảnh |
-| LEAK_TEST | 11 | Máy loại ảnh | Ảnh gần trùng với tập tham chiếu |
-| EMPTY_LABEL | 11 | Người | Cần phân biệt ảnh nền với thiếu nhãn |
+| POSSIBLE_FALSE_POS | 29 | Người | Cảnh báo box nhãn không khớp dự đoán |
+| POSSIBLE_LOOSE_BOX | 28 | Người | Cảnh báo box có thể lỏng/lệch |
+| POSSIBLE_WRONG_CLASS | 18 | Người | Cảnh báo khác lớp cần xem ảnh |
+| LEAK_TEST | 5 | Máy loại ảnh | Ảnh gần trùng với tập tham chiếu |
+| EMPTY_LABEL | 12 | Người | Cần phân biệt ảnh nền với thiếu nhãn |
 | DUP_IMAGE_EXACT | 8 | Máy loại ảnh | Trùng byte |
 | BOX_OUT_OF_IMAGE | 8 | Máy cắt | Cắt box vào biên ảnh |
-| DUP_IMAGE_NEAR | 7 | Máy loại ảnh | Trùng gần đúng |
+| DUP_IMAGE_NEAR | 4 | Máy loại ảnh | Trùng gần đúng |
 | DUP_BOX | 7 | Máy xóa dòng | Dòng box lặp |
 | MISSING_LABEL_FILE | 6 | Người | Máy không tự tạo nhãn |
 | BAD_CLASS_ID | 6 | Máy xóa dòng | ID ngoài danh sách lớp |
@@ -37,16 +37,16 @@ Autofix ghi 35 thay đổi: 20 drop_line, 8 clip_box, 6 needs_label và 1 rename
 
 | Tham số | Giá trị đầu | Đã chọn | Precision / Recall | Lý do |
 |---|---:|---:|---|---|
-| duplicates.phash_dist | 2 | 16 | near duplicate: 1.00 / 0.50 → 1.00 / 0.83 | Giữ precision 1.00 và tăng recall; ở 20 precision exact duplicate giảm còn 0.33. |
+| duplicates.phash_dist | 2 | 14 | near duplicate: 1.00 / 0.50 → 1.00 / 0.67 | Ưu tiên precision vì báo nhầm sẽ loại ảnh tốt. Ảnh raw xác nhận khoảng cách 16 có cặp khác nội dung; ở 20 precision exact duplicate giảm còn 0.33. |
 | second_opinion.conf | 0.25 | 0.6 | wrong class: 0.56 / 0.83 → 0.62 / 0.83; missing: 0.50 / 1.00 → 0.57 / 1.00 | Tăng precision mà vẫn giữ recall missing/wrong-class ở mức sweep này. Loose-box giảm recall; cần người xem xét. |
 
-Calibration có thể đánh lừa vì chỉ có 39 ảnh và lỗi được chèn có chủ đích. Kết quả trên tập này không bảo đảm phản ánh đầy đủ lỗi tự nhiên trong raw; vì vậy phash_dist 16 cần được kiểm tra trực quan trên các cặp ảnh bị coi là trùng.
+Calibration có thể đánh lừa vì chỉ có 39 ảnh và lỗi được chèn có chủ đích. Kiểm tra trực quan 7 cặp near duplicate raw cho thấy hai cặp khoảng cách 16 khác nội dung (img_0011/img_0008 và img_0177/img_0113); các cặp khoảng cách 0, 6, 10 là cùng cảnh hoặc rất gần. Vì vậy chọn 14 để tránh hai false positive đó, dù recall calib giảm từ 0.83 xuống 0.67.
 
 ## 4. Cửa chặn và điểm mù
 
-Ở lần chạy chính, gate báo Hold vì 34/193 ảnh còn cảnh báo (17,62%), vượt ngưỡng 10%. Hàng đợi 121 ảnh vượt ngân sách 80, nên cảnh báo còn lại là lý do cần review thêm.
+Ở lần chạy chính, gate báo Hold vì 38/202 ảnh còn cảnh báo (18,81%), vượt ngưỡng 10%. Hàng đợi 125 ảnh vượt ngân sách 80, nên cảnh báo còn lại là lý do cần review thêm.
 
-Ở lần chạy `--budget 0`, gate báo **Rework**, còn 6 lỗi bắt buộc và không xuất dataset; đây là bằng chứng lỗi bắt buộc chặn xuất. Hai điểm mù đã biết: (1) checker second-opinion phụ thuộc dự đoán model, mà prediction cũng có thể sai; calibration cho wrong-class tại conf 0.6 có precision 0.62, tức còn false positive. (2) bộ calibration nhỏ (39 ảnh) và không bao phủ mọi biến thể trùng ảnh/lỗi tự nhiên, nên recall trên calib không đại diện chắc chắn cho raw.
+Ở lần chạy `--budget 0`, gate báo **Rework**, còn 6 lỗi bắt buộc và không xuất dataset (`exported: null`); đây là bằng chứng lỗi bắt buộc chặn xuất. Hai điểm mù đã biết: (1) checker second-opinion phụ thuộc dự đoán model, mà prediction cũng có thể sai; calibration cho wrong-class tại conf 0.6 có precision 0.62, tức còn false positive. (2) bộ calibration nhỏ (39 ảnh) và không bao phủ mọi biến thể trùng ảnh/lỗi tự nhiên, nên recall trên calib không đại diện chắc chắn cho raw.
 
 ## 5. Train raw vs clean
 

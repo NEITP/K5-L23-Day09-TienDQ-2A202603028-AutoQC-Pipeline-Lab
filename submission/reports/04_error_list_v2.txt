@@ -1,9 +1,9 @@
 # Danh sách lỗi — SAU sửa tự động (v2)
-ảnh đã quét: 193
+ảnh đã quét: 202
 
 label_format -> 10 dòng
-missing_labels -> 20 dòng
-second_opinion -> 120 dòng
+missing_labels -> 21 dòng
+second_opinion -> 123 dòng
 
 [ERROR] MISSING_LABEL_FILE   img_0031  ảnh không có file nhãn
 [ERROR] MISSING_LABEL_FILE   img_0053  ảnh không có file nhãn
@@ -22,6 +22,7 @@ second_opinion -> 120 dòng
 [WARN ] BOX_TINY             img_0161.txt:3  box nhỏ
 [WARN ] BOX_TINY             img_0161.txt:4  box nhỏ
 [WARN ] EMPTY_LABEL          img_0004  file nhãn rỗng: ảnh nền hay thiếu nhãn?
+[WARN ] EMPTY_LABEL          img_0013  file nhãn rỗng: ảnh nền hay thiếu nhãn?
 [WARN ] EMPTY_LABEL          img_0050  file nhãn rỗng: ảnh nền hay thiếu nhãn?
 [WARN ] EMPTY_LABEL          img_0057  file nhãn rỗng: ảnh nền hay thiếu nhãn?
 [WARN ] EMPTY_LABEL          img_0065  file nhãn rỗng: ảnh nền hay thiếu nhãn?
@@ -53,6 +54,7 @@ second_opinion -> 120 dòng
 [WARN ] POSSIBLE_FALSE_POS   img_0150.txt:3  nhãn không khớp dự đoán
 [WARN ] POSSIBLE_FALSE_POS   img_0155.txt:2  nhãn không khớp dự đoán
 [WARN ] POSSIBLE_FALSE_POS   img_0155.txt:3  nhãn không khớp dự đoán
+[WARN ] POSSIBLE_FALSE_POS   img_0177.txt:2  nhãn không khớp dự đoán
 [WARN ] POSSIBLE_FALSE_POS   img_0180.txt:5  nhãn không khớp dự đoán
 [WARN ] POSSIBLE_FALSE_POS   img_0189.txt:4  nhãn không khớp dự đoán
 [WARN ] POSSIBLE_FALSE_POS   img_0193.txt:6  nhãn không khớp dự đoán
@@ -61,6 +63,7 @@ second_opinion -> 120 dòng
 [WARN ] POSSIBLE_LOOSE_BOX   img_0015  model và nhãn có thể không khớp
 [WARN ] POSSIBLE_LOOSE_BOX   img_0018  model và nhãn có thể không khớp
 [WARN ] POSSIBLE_LOOSE_BOX   img_0036  model và nhãn có thể không khớp
+[WARN ] POSSIBLE_LOOSE_BOX   img_0038  model và nhãn có thể không khớp
 [WARN ] POSSIBLE_LOOSE_BOX   img_0045  model và nhãn có thể không khớp
 [WARN ] POSSIBLE_LOOSE_BOX   img_0046  model và nhãn có thể không khớp
 [WARN ] POSSIBLE_LOOSE_BOX   img_0054  model và nhãn có thể không khớp
@@ -140,6 +143,7 @@ second_opinion -> 120 dòng
 [WARN ] POSSIBLE_MISSING     img_0220  model và nhãn có thể không khớp
 [WARN ] POSSIBLE_WRONG_CLASS img_0019  model và nhãn có thể không khớp
 [WARN ] POSSIBLE_WRONG_CLASS img_0020  model và nhãn có thể không khớp
+[WARN ] POSSIBLE_WRONG_CLASS img_0021  model và nhãn có thể không khớp
 [WARN ] POSSIBLE_WRONG_CLASS img_0034  model và nhãn có thể không khớp
 [WARN ] POSSIBLE_WRONG_CLASS img_0037  model và nhãn có thể không khớp
 [WARN ] POSSIBLE_WRONG_CLASS img_0070  model và nhãn có thể không khớp
@@ -160,8 +164,8 @@ second_opinion -> 120 dòng
 error MISSING_LABEL_FILE     6
 warn  BOX_HUGE               3
 warn  BOX_TINY               7
-warn  EMPTY_LABEL            14
-warn  POSSIBLE_FALSE_POS     23
-warn  POSSIBLE_LOOSE_BOX     27
+warn  EMPTY_LABEL            15
+warn  POSSIBLE_FALSE_POS     24
+warn  POSSIBLE_LOOSE_BOX     28
 warn  POSSIBLE_MISSING       53
-warn  POSSIBLE_WRONG_CLASS   17
+warn  POSSIBLE_WRONG_CLASS   18

@@ -2,17 +2,17 @@
   "verdict": {
     "decision": "Hold",
     "n_errors": 0,
-    "n_warn_images": 34,
-    "n_images": 193,
-    "warn_ratio": 0.1762,
+    "n_warn_images": 38,
+    "n_images": 202,
+    "warn_ratio": 0.1881,
     "reasons": [
-      "Còn cảnh báo ở 34/193 ảnh (tỷ lệ 0.1762); quyết định Hold."
+      "Còn cảnh báo ở 38/202 ảnh (tỷ lệ 0.1881); quyết định Hold."
     ]
   },
   "reviewed": 80,
   "budget": 80,
-  "seconds": 5.0,
+  "seconds": 6.3,
   "exported": "C:\\Users\\dinhq\\Documents\\K5-L23-Day09-TienDQ-2A202603028-AutoQC-Pipeline-Lab\\submission\\export\\clean_v1",
-  "config_sha1": "b8c69ed7653ad6ea2bd1ebe1e9cc5279b0a05b11",
+  "config_sha1": "d0bdf92218eb5ab93150517030a31a5dd7ef1866",
   "review_sim_sha1": "7988ca22827f780a7043a2300490e679a1697154"
 }
